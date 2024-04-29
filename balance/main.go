@@ -22,8 +22,8 @@ func run() error {
 	cfg := config.GetDefault()
 	log.Debug(cfg.String())
 
-	// TODO: make context
-	ctx := context.TODO()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	client, err := ethclient.DialContext(ctx, cfg.EthClientURL)
 	if err != nil {
@@ -46,11 +46,11 @@ func run() error {
 		return fmt.Errorf("failed to get balance: %w", err)
 	}
 	// 1 ether = 10^18 wei
-	
+
 	ethBalance := new(big.Float)
 	ethBalance.SetString(weiBalance.String())
 	ethBalance = new(big.Float).Quo(ethBalance, big.NewFloat(math.Pow10(18)))
-	
+
 	fmt.Printf("The %s address balance: %v ETH \n", addr, ethBalance)
 
 	return nil
