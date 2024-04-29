@@ -22,7 +22,10 @@ func run() error {
 	}
 
 	privateKeyData := crypto.FromECDSA(privateKey)
-	fmt.Println(hexutil.Encode(privateKeyData))
+	fmt.Println("private key:", hexutil.Encode(privateKeyData))
+
+	publicKeyData := crypto.FromECDSAPub(&privateKey.PublicKey)
+	fmt.Println("public key:", hexutil.Encode(publicKeyData))
 
 	return nil
 }
