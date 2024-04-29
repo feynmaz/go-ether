@@ -27,5 +27,8 @@ func run() error {
 	publicKeyData := crypto.FromECDSAPub(&privateKey.PublicKey)
 	fmt.Println("public key:", hexutil.Encode(publicKeyData))
 
+	address := crypto.PubkeyToAddress(privateKey.PublicKey).Hex()
+	fmt.Println("address:", address)
+	
 	return nil
 }
