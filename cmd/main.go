@@ -22,13 +22,18 @@ func run() error {
 	// TODO: make context
 	ctx := context.TODO()
 
-	client, err := ethclient.DialContext(ctx, cfg.InfuraURL)
+	client, err := ethclient.DialContext(ctx, cfg.EthClientURL)
 	if err != nil {
 		return fmt.Errorf("failed to dial eth client: %w", err)
 	}
 	defer client.Close()
 
-	
+	block, err := client.BlockByNumber(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to get block: %w", err)
+	}
+
+	fmt.Println(block.Number())
 
 	return nil
 }

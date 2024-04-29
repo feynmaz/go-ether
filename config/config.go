@@ -10,8 +10,8 @@ import (
 )
 
 type Config struct {
-	Port      int    `envconfig:"PORT" default:"8080"`
-	InfuraURL string `envconfig:"INFURA_URL" required:"true"`
+	Port         int    `envconfig:"PORT" default:"8080"`
+	EthClientURL string `envconfig:"ETH_CLIENT_URL" required:"true"`
 }
 
 var (
