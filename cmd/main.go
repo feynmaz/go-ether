@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"math"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -39,11 +41,17 @@ func run() error {
 	addr := "0xB61Ff46584078A85246B4520173b3640Db871666"
 	address := common.HexToAddress(addr)
 
-	balance, err := client.BalanceAt(ctx, address, nil)
+	weiBalance, err := client.BalanceAt(ctx, address, nil)
 	if err != nil {
 		return fmt.Errorf("failed to get balance: %w", err)
 	}
-	fmt.Printf("The %s address balance: %v \n", addr, balance)
+	// 1 ether = 10^18 wei
+	
+	ethBalance := new(big.Float)
+	ethBalance.SetString(weiBalance.String())
+	ethBalance = new(big.Float).Quo(ethBalance, big.NewFloat(math.Pow10(18)))
+	
+	fmt.Printf("The %s address balance: %v ETH \n", addr, ethBalance)
 
 	return nil
 }
