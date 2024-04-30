@@ -67,7 +67,7 @@ func run() error {
 	}
 
 	// Make transaction
-	var gasLimit uint64 = 30_000_000
+	var gasLimit uint64 = 6721975
 	gasPrice, err := client.SuggestGasPrice(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to suggest gas price: %w", err)
@@ -80,7 +80,7 @@ func run() error {
 
 	fmt.Println("gasLimit:", gasLimit, "wei")
 	fmt.Println("gasPrice:", gasPrice, "wei")
-	fmt.Println("nonce:", nonce, "wei")
+	fmt.Println("nonce:", nonce)
 
 	gasLimitBigInt := big.NewInt(int64(gasLimit))
 	totalCostWei := new(big.Int).Mul(gasPrice, gasLimitBigInt)
