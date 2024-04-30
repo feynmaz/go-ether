@@ -13,13 +13,13 @@ type Account struct {
 	Address    string
 }
 
-func GetAccountKey(account Account) (*keystore.Key, error) {
-	b, err := os.ReadFile(account.KeyPath)
+func (a *Account) GetAccountKey() (*keystore.Key, error) {
+	b, err := os.ReadFile(a.KeyPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
 
-	key, err := keystore.DecryptKey(b, account.Passphrase)
+	key, err := keystore.DecryptKey(b, a.Passphrase)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt key: %w", err)
 	}

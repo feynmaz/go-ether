@@ -3,8 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"os"
 
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/feynmaz/go-ether/account"
 	"github.com/feynmaz/go-ether/balance"
@@ -24,24 +27,22 @@ func main() {
 }
 
 func run() error {
-	accounts := []account.Account{
-		{
-			KeyPath:    "../data/wallet/UTC--2024-04-30T18-16-11.115357251Z--c0e3cad8caf06c53588efe33d160316a7b9e7ce8",
-			Passphrase: "password0",
-			Address:    "0xc0E3Cad8CAF06C53588EFE33D160316a7B9e7cE8",
-		},
-		{
-			KeyPath:    "../data/wallet/UTC--2024-04-30T18-16-12.792380414Z--057728f9f90c3bef651c3f33430d72089d0b8fb6",
-			Passphrase: "password1",
-			Address:    "0x057728F9f90c3BEF651c3f33430D72089d0b8fB6",
-		},
+	acc0 := account.Account{
+		KeyPath:    "../data/wallet/UTC--2024-04-30T18-16-11.115357251Z--c0e3cad8caf06c53588efe33d160316a7b9e7ce8",
+		Passphrase: "password0",
+		Address:    "0xc0E3Cad8CAF06C53588EFE33D160316a7B9e7cE8",
+	}
+	acc1 := account.Account{
+		KeyPath:    "../data/wallet/UTC--2024-04-30T18-16-12.792380414Z--057728f9f90c3bef651c3f33430d72089d0b8fb6",
+		Passphrase: "password1",
+		Address:    "0x057728F9f90c3BEF651c3f33430D72089d0b8fB6",
 	}
 
-	key0, err := account.GetAccountKey(accounts[0])
+	key0, err := acc0.GetAccountKey()
 	if err != nil {
 		return fmt.Errorf("failed to get account 0 key: %w", err)
 	}
-	key1, err := account.GetAccountKey(accounts[1])
+	key1, err := acc1.GetAccountKey()
 	if err != nil {
 		return fmt.Errorf("failed to get account 1 key: %w", err)
 	}
@@ -65,50 +66,59 @@ func run() error {
 		return fmt.Errorf("failed to print balance of account 1: %w", err)
 	}
 
-	// Create transaction
+	// Make transaction
+	var gasLimit uint64 = 30_000_000
+	gasPrice, err := client.SuggestGasPrice(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to suggest gas price: %w", err)
+	}
 
-	// gasPrice, err := client.SuggestGasPrice(ctx)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to suggest gas price: %w", err)
-	// }
+	nonce, err := client.PendingNonceAt(ctx, common.HexToAddress(acc0.Address))
+	if err != nil {
+		return fmt.Errorf("failed to get nonce: %w", err)
+	}
 
-	// nonce1, err := client.PendingNonceAt(ctx, hexAddress1)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to get nonce: %w", err)
-	// }
+	fmt.Println("gasLimit:", gasLimit, "wei")
+	fmt.Println("gasPrice:", gasPrice, "wei")
+	fmt.Println("nonce:", nonce, "wei")
 
-	// amount := big.NewInt(10_000_000_000_000_000) // 0.01 ETH
+	gasLimitBigInt := big.NewInt(int64(gasLimit))
+	totalCostWei := new(big.Int).Mul(gasPrice, gasLimitBigInt)
+	etherValue := new(big.Float).Quo(new(big.Float).SetInt(totalCostWei), big.NewFloat(1e18))
+	etherValueF, _ := etherValue.Float64()
+	fmt.Printf("transaction cost = gasPrice*gasLimit: %v ETH \n", etherValueF)
 
-	// networkId, err := client.NetworkID(ctx)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to get network id: %w", err)
-	// }
+	amount := big.NewInt(1e17) // 0.1 ETH
+	tx := types.NewTransaction(
+		nonce,
+		common.HexToAddress(acc1.Address),
+		amount,
+		gasLimit,
+		gasPrice,
+		nil,
+	)
 
-	// privateKey, err := wallet.GetPrivateKey(walletPath, hexAddress1.String(), passphrase1)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to get private key: %w", err)
-	// }
+	// Sign transaction
+	chainID, err := client.NetworkID(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get network id: %w", err)
+	}
 
-	// tx := types.NewTransaction(
-	// 	nonce1,
-	// 	hexAddress2,
-	// 	amount,
-	// 	defaultGasLimit,
-	// 	gasPrice,
-	// 	nil,
-	// )
+	tx, err = types.SignTx(
+		tx,
+		types.LatestSignerForChainID(chainID),
+		key0.PrivateKey,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to sign transaction: %w", err)
+	}
 
-	// tx, err = types.SignTx(tx, types.NewEIP155Signer(networkId), privateKey)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to sign transaction: %w", err)
-	// }
-
-	// err = client.SendTransaction(ctx, tx)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to send transaction: %w", err)
-	// }
-
-	// log.Infof("transaction sent: %s", tx.Hash().Hex())
+	// Send transaction
+	err = client.SendTransaction(ctx, tx)
+	if err != nil {
+		return fmt.Errorf("failed to send transaction: %w", err)
+	}
+	fmt.Printf("transaction hash: %s", tx.Hash().Hex())
 
 	return nil
 }
