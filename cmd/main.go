@@ -3,18 +3,18 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/feynmaz/go-ether/account"
 	"github.com/feynmaz/go-ether/config"
-	"github.com/feynmaz/go-ether/wallet"
 	log "github.com/sirupsen/logrus"
 )
 
-var (
-	walletPath        = "../data/wallet"
-	createNewAccounts = false
-)
+func init() {
+	log.SetOutput(os.Stdout)
+	log.SetFormatter(&log.JSONFormatter{ PrettyPrint: true})
+}
 
 func main() {
 	if err := run(); err != nil {
@@ -23,6 +23,26 @@ func main() {
 }
 
 func run() error {
+	accounts := []account.Account{
+		{
+			KeyPath:    "../data/wallet/UTC--2024-04-30T18-16-11.115357251Z--c0e3cad8caf06c53588efe33d160316a7b9e7ce8",
+			Passphrase: "password0",
+		},
+		{
+			KeyPath:    "../data/wallet/UTC--2024-04-30T18-16-12.792380414Z--057728f9f90c3bef651c3f33430d72089d0b8fb6",
+			Passphrase: "password1",
+		},
+	}
+
+	key0, err := account.GetAccountKey(accounts[0])
+	if err != nil {
+		return fmt.Errorf("failed to get account 0 key: %w", err)
+	}
+	key1, err := account.GetAccountKey(accounts[1])
+	if err != nil {
+		return fmt.Errorf("failed to get account 1 key: %w", err)
+	}
+
 	cfg := config.GetDefault()
 	log.Debug(cfg)
 
@@ -35,42 +55,61 @@ func run() error {
 	}
 	defer client.Close()
 
-	var hexAddress1, hexAddress2 common.Address
-	if createNewAccounts {
-		walletPath = "../data/wallet"
-		key := wallet.CreateWallet(walletPath)
-
-		passphrase1 := "password1"
-		acc1, err := wallet.CreateAccount(key, passphrase1)
-		if err != nil {
-			return fmt.Errorf("failed to create account: %w", err)
-		}
-		hexAddress1 = acc1.Address
-
-		passphrase2 := "password1"
-		acc2, err := wallet.CreateAccount(key, passphrase2)
-		if err != nil {
-			return fmt.Errorf("failed to create account: %w", err)
-		}
-		hexAddress2 = acc2.Address
-
-	} else {
-		hexAddress1 = wallet.GetAddress("0xAc5fc0Da40229Da5b0Fa582d41354F9BF4f4ca8a")
-		hexAddress2 = wallet.GetAddress("0x11Bc2AfD266FDa58C771630119dD5b3a7D0Fa6B7")
-	}
-
-	balance1, err := client.BalanceAt(ctx, hexAddress1, nil)
+	balance0, err := client.BalanceAt(ctx, key0.Address, nil)
 	if err != nil {
-		return fmt.Errorf("failed to get balance: %w", err)
+		return fmt.Errorf("failed to get 0 balance: %w", err)
 	}
+	log.Infof("%s balance: %d", key0.Address, balance0)
 
-	balance2, err := client.BalanceAt(ctx, hexAddress2, nil)
+	balance1, err := client.BalanceAt(ctx, key1.Address, nil)
 	if err != nil {
-		return fmt.Errorf("failed to get balance: %w", err)
+		return fmt.Errorf("failed to get 1 balance: %w", err)
 	}
+	log.Infof("%s balance: %d", key1.Address, balance1)
 
-	fmt.Println("balance 1:", balance1)
-	fmt.Println("balance 2:", balance2)
+
+	// gasPrice, err := client.SuggestGasPrice(ctx)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to suggest gas price: %w", err)
+	// }
+
+	// nonce1, err := client.PendingNonceAt(ctx, hexAddress1)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to get nonce: %w", err)
+	// }
+
+	// amount := big.NewInt(10_000_000_000_000_000) // 0.01 ETH
+
+	// networkId, err := client.NetworkID(ctx)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to get network id: %w", err)
+	// }
+
+	// privateKey, err := wallet.GetPrivateKey(walletPath, hexAddress1.String(), passphrase1)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to get private key: %w", err)
+	// }
+
+	// tx := types.NewTransaction(
+	// 	nonce1,
+	// 	hexAddress2,
+	// 	amount,
+	// 	defaultGasLimit,
+	// 	gasPrice,
+	// 	nil,
+	// )
+
+	// tx, err = types.SignTx(tx, types.NewEIP155Signer(networkId), privateKey)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to sign transaction: %w", err)
+	// }
+
+	// err = client.SendTransaction(ctx, tx)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to send transaction: %w", err)
+	// }
+
+	// log.Infof("transaction sent: %s", tx.Hash().Hex())
 
 	return nil
 }
