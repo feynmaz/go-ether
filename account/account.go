@@ -10,6 +10,7 @@ import (
 type Account struct {
 	KeyPath    string
 	Passphrase string
+	Address    string
 }
 
 func GetAccountKey(account Account) (*keystore.Key, error) {

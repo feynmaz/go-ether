@@ -7,13 +7,14 @@ import (
 
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/feynmaz/go-ether/account"
+	"github.com/feynmaz/go-ether/balance"
 	"github.com/feynmaz/go-ether/config"
 	log "github.com/sirupsen/logrus"
 )
 
 func init() {
 	log.SetOutput(os.Stdout)
-	log.SetFormatter(&log.JSONFormatter{ PrettyPrint: true})
+	log.SetFormatter(&log.JSONFormatter{PrettyPrint: true})
 }
 
 func main() {
@@ -27,10 +28,12 @@ func run() error {
 		{
 			KeyPath:    "../data/wallet/UTC--2024-04-30T18-16-11.115357251Z--c0e3cad8caf06c53588efe33d160316a7b9e7ce8",
 			Passphrase: "password0",
+			Address:    "0xc0E3Cad8CAF06C53588EFE33D160316a7B9e7cE8",
 		},
 		{
 			KeyPath:    "../data/wallet/UTC--2024-04-30T18-16-12.792380414Z--057728f9f90c3bef651c3f33430d72089d0b8fb6",
 			Passphrase: "password1",
+			Address:    "0x057728F9f90c3BEF651c3f33430D72089d0b8fB6",
 		},
 	}
 
@@ -55,18 +58,14 @@ func run() error {
 	}
 	defer client.Close()
 
-	balance0, err := client.BalanceAt(ctx, key0.Address, nil)
-	if err != nil {
-		return fmt.Errorf("failed to get 0 balance: %w", err)
+	if err := balance.PrintEthBalance(ctx, client, key0); err != nil {
+		return fmt.Errorf("failed to print balance of account 0: %w", err)
 	}
-	log.Infof("%s balance: %d", key0.Address, balance0)
-
-	balance1, err := client.BalanceAt(ctx, key1.Address, nil)
-	if err != nil {
-		return fmt.Errorf("failed to get 1 balance: %w", err)
+	if err := balance.PrintEthBalance(ctx, client, key1); err != nil {
+		return fmt.Errorf("failed to print balance of account 1: %w", err)
 	}
-	log.Infof("%s balance: %d", key1.Address, balance1)
 
+	// Create transaction
 
 	// gasPrice, err := client.SuggestGasPrice(ctx)
 	// if err != nil {
