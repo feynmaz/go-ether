@@ -1,7 +1,7 @@
 from web3 import Web3
 
 # Connect to Ganache
-ganache_url = "http://localhost:8545"
+ganache_url = "http://localhost:7545"
 web3 = Web3(Web3.HTTPProvider(ganache_url))
 
 # Check if the connection is successful
@@ -16,7 +16,7 @@ def send_ether():
 
     # Define sender and receiver
     sender = accounts[0]  # Typically the first account is used
-    receiver = "0xc0E3Cad8CAF06C53588EFE33D160316a7B9e7cE8"  # Replace with your address
+    receiver = "0xA6fCbA9bb03cd730e40984360aB15093f85520d3"  # Replace with your address
     amount = web3.to_wei(10, 'ether')  # Amount to send
 
     # Send Ether

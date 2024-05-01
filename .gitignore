@@ -26,6 +26,7 @@ go.work
 tmp/
 data/*
 !*.gitkeep
+build/
 
 # Python
 venv/
