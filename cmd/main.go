@@ -30,9 +30,9 @@ func main() {
 func run() error {
 
 	acc0 := account.Account{
-		KeyPath:    "/root/go/src/github.com/feynmaz/go-ether/data/wallet/UTC--2024-05-02T20-22-14.699851585Z--02579e833024f2287612fba0b3767c1cd79a6007",
+		KeyPath:    "/root/go/src/github.com/feynmaz/go-ether/data/wallet/UTC--2024-05-03T00-24-12.971603536Z--8a8ed9df029ebbce8e890aa21d57df1258ae4be2",
 		Passphrase: "password0",
-		Address:    "0x02579E833024f2287612FbA0b3767c1Cd79A6007",
+		Address:    "0x8A8Ed9dF029eBBCe8e890aA21D57df1258aE4bE2",
 	}
 	key0, err := acc0.GetAccountKey()
 	if err != nil {
@@ -100,34 +100,34 @@ func run() error {
 	}
 	auth.Value = big.NewInt(0)
 	auth.GasLimit = gasLimit
-	auth.GasPrice = gasPrice.Mul(gasPrice, big.NewInt(1))
+	auth.GasPrice = gasPrice.Mul(gasPrice, big.NewInt(10))
 	auth.Nonce = big.NewInt(int64(nonce))
 
-	// td, err := todo.NewTodo(common.HexToAddress("0xA4ec0541d420f1526eb79B20DBE5f7Cc40dc8bF2"), client)
+	// address, tx, _, err := todo.DeployTodo(auth, client)
 	// if err != nil {
-	// 	return fmt.Errorf("failed to create new todo: %w", err)
+	// 	return fmt.Errorf("failed to deploy todo: %w", err)
 	// }
+	// fmt.Println("address:", address.Hex())
+	// fmt.Println("tx:", tx.Hash().Hex())
 
-	// tasks, err := td.List(&bind.CallOpts{
-	// 	From: common.HexToAddress(acc0.Address),
-	// })
+	td, err := todo.NewTodo(common.HexToAddress("0xf3b3D96AFd0Ea779C00Ddb2131DD01817B471B7c"), client)
+	if err != nil {
+		return fmt.Errorf("failed to create new todo: %w", err)
+	}
+
+	tasks, err := td.List(&bind.CallOpts{
+		From: common.HexToAddress(acc0.Address),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to list todo: %w", err)
+	}
+	fmt.Println(tasks)
+
+	// tx, err := td.Add(auth, "task1")
 	// if err != nil {
-	// 	return fmt.Errorf("failed to list todo: %w", err)
+	// 	return fmt.Errorf("failed to add todo: %w", err)
 	// }
-	// fmt.Println(tasks)
-
-	address, tx, td, err := todo.DeployTodo(auth, client)
-	if err != nil {
-		return fmt.Errorf("failed to deploy todo: %w", err)
-	}
-	fmt.Println("address:", address.Hex())
-	fmt.Println("tx:", tx.Hash().Hex())
-
-	tx, err = td.Add(auth, "task1")
-	if err != nil {
-		return fmt.Errorf("failed to add todo: %w", err)
-	}
-	fmt.Println("todo.Add() tx:", tx.Hash().Hex())
+	// fmt.Println("todo.Add() tx:", tx.Hash().Hex())
 
 	return nil
 }
