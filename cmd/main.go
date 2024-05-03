@@ -103,7 +103,7 @@ func run() error {
 	auth.GasPrice = gasPrice.Mul(gasPrice, big.NewInt(10))
 	auth.Nonce = big.NewInt(int64(nonce))
 
-	// address, tx, _, err := todo.DeployTodo(auth, client)
+	// address, tx, td, err := todo.DeployTodo(auth, client)
 	// if err != nil {
 	// 	return fmt.Errorf("failed to deploy todo: %w", err)
 	// }
@@ -115,6 +115,18 @@ func run() error {
 		return fmt.Errorf("failed to create new todo: %w", err)
 	}
 
+	// tx, err := td.Add(auth, "task1")
+	// if err != nil {
+	// 	return fmt.Errorf("failed to add todo: %w", err)
+	// }
+	// fmt.Println("todo.Add() tx:", tx.Hash().Hex())
+
+	tx, err := td.Update(auth, big.NewInt(0), "task1")
+	if err != nil {
+		return fmt.Errorf("failed to add todo: %w", err)
+	}
+	fmt.Println("todo.Add() tx:", tx.Hash().Hex())
+
 	tasks, err := td.List(&bind.CallOpts{
 		From: common.HexToAddress(acc0.Address),
 	})
@@ -122,12 +134,6 @@ func run() error {
 		return fmt.Errorf("failed to list todo: %w", err)
 	}
 	fmt.Println(tasks)
-
-	// tx, err := td.Add(auth, "task1")
-	// if err != nil {
-	// 	return fmt.Errorf("failed to add todo: %w", err)
-	// }
-	// fmt.Println("todo.Add() tx:", tx.Hash().Hex())
 
 	return nil
 }
