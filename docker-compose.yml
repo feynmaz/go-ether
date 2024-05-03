@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  geth:
+    image: ethereum/client-go
+    command:
+      - "--dev"
+      - "--rpc"
+      - "--rpcaddr"
+      - "0.0.0.0"
+      - "--rpcapi"
+      - "admin,eth,net,web3,personal,miner"
+      - "--rpcvhosts=*"
+      - "--ws"
+      - "--wsaddr"
+      - "0.0.0.0"
+      - "--wsapi"
+      - "admin,eth,net,web3,personal,miner"
+      - "--wsorigins=*"
+      - "--miner.threads"
+      - "1"
+      - "--allow-insecure-unlock"
+    ports:
+      - "8545:8545"
+      - "8546:8546"
+    networks:
+      - blockchain
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: blockscout
+      POSTGRES_PASSWORD: blockscout
+      POSTGRES_DB: blockscout
+    volumes:
+      - data/pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - blockchain
+
+  blockscout:
+    build: ./blockscout
+    environment:
+      DATABASE_URL: postgresql://blockscout:blockscout@postgres:5432/blockscout
+      COIN: ETH
+      ETHEREUM_JSONRPC_VARIANT: geth
+      ETHEREUM_JSONRPC_HTTP_URL: http://geth:8545
+      ETHEREUM_JSONRPC_WS_URL: ws://geth:8546
+      PORT: 4000
+    ports:
+      - "4000:4000"
+    depends_on:
+      - postgres
+      - geth
+    networks:
+      - blockchain
+
+networks:
+  blockchain:
